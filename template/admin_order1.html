@@ -1,0 +1,162 @@
+{% extends 'admin_layout.html' %}
+{% block title %}已处理订单{% end %}
+
+{% block js %}
+<script>
+    function get_user_info(id) {
+        $.ajax({
+            url: "/admin/user/select/"+id+"/",
+            data:"",
+            type:'get',
+            async:false,
+            datatype:'json',
+            success: function(arg){
+                coll_back_data = $.parseJSON(arg)
+                console.log(coll_back_data.data)
+                id = coll_back_data.data.UserID
+                name= coll_back_data.data.UserName
+                sex= coll_back_data.data.UserSex
+                age= coll_back_data.data.UserAge
+                email= coll_back_data.data.UserEmail
+                vip= coll_back_data.data.UserVip
+                point= coll_back_data.data.UserPoint
+        }});
+
+       layer.open({
+          type: 1
+          ,title: '用户信息'
+          ,area: ['390px', '230px']
+          ,shade: 0
+          ,offset: [$(window).height()/4.5, $(window).width()/2.5]
+          ,maxmin: true
+          ,content:
+              '<br><ul>\n' +
+          '  <li>ID : '+ id +'</li>\n' +　
+          '  <li>名称 : '+ name +'</li>\n' +
+          '  <li>性别 : '+ sex +'</li>\n' +
+          '  <li>年龄 : '+ age +'</li>\n' +
+          '  <li>邮箱 : '+ email +'</li>\n' +
+          '  <li>VIP等级 : '+ vip +'</li>\n' +
+          '  <li>积分 :  '+ point +'</li>\n' +
+          '</ul>'
+          ,yes: function(){
+            $(that).click();
+          }
+          ,zIndex: layer.zIndex
+          ,success: function(layero){
+            layer.setTop(layero);
+          }
+        });
+    }
+</script>
+{% end %}
+
+{% block bread_crumbs %}
+<ul class="breadcrumb">
+	<li>
+		<i class="ace-icon fa fa-home home-icon"></i>
+		<a href="javascript:void(0);">首页</a>
+	</li>
+
+	<li>
+		<a href="javascript:void(0);">已处理订单</a>
+	</li>
+	<li class="active"> &amp; Order</li>
+</ul>
+{% end %}
+
+<!-- 面包屑下的表的名称 -->
+{% block bread_crumbs_table_name %}
+<div class="page-header">
+	<h1>
+		已处理订单&nbsp;&nbsp;<span style="font-size: 14px;color: red;">&amp;查看</span>
+	</h1>
+</div>
+{% end %}
+
+<!-- 表的内容 -->
+{% block table_content %}
+<div class="row">
+	<div class="col-xs-12">
+		<!-- PAGE CONTENT BEGINS -->
+		<div class="row">
+			<div class="col-xs-12">
+				<table id="simple-table" class="table  table-bordered table-hover">
+					<thead>
+						<tr>
+							<th class="center col-md-1">订单ID</th>
+							<th class="center col-md-1">用户ID</th>
+							<th class="center col-md-2">订单总价</th>
+							<th class="center col-md-2">支付方式</th>
+							<th class="center col-md-2">订单状态</th>
+							<th class="center col-md-2">配送地址</th>
+						</tr>
+					</thead>
+					<tbody>
+                    {% for order in order_list %}
+						<tr>
+                            <td class="center">{{ order.OrderID }}</td>
+                            <td style="cursor:pointer;color: red" onclick="get_user_info('{{ order.UserID }}')" class="center">{{ order.UserID }}</td>
+                            <td class="center">{{ order.OrderTotalPrice }}</td>
+                            <td class="center">{{ order.OrderPayType }}</td>
+                            {% if order.OrderStatus == True %}
+                                <td class="center">完成</td>
+                            {% else %}
+                                <td class="center">未完成</td>
+                            {% end %}
+                            <td class="center">{{ order.OrderSendAddress }}</td>
+						</tr>
+                    {% end %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+{% end %}
+
+
+{% block modify_alert %}
+<!-- 修改弹窗块 -->
+<div id="modal-table" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header no-padding">
+                <div class="table-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="white">&times;</span>
+                    </button>
+                    修改订单状态
+                </div>
+            </div>
+
+            <div class="modal-body no-padding">
+                <form action="" class="form-horizontal">
+                    <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right">订单编号</label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="product_type_id" value="" class="col-xs-10 col-sm-5" readonly/>
+                            </div>
+                        </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right">订单状态</label>
+                        <div class="col-sm-9">
+                            <select id="IsHot" class="form-control" style="max-width: 200px;">
+                                <option value="1">未完成</option>
+                                <option value="0">完成</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer no-margin-top">
+                <button onclick="save_product_type()" class="btn btn-sm btn-success pull-right" >
+                    提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% end %}
