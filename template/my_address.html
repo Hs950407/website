@@ -1,0 +1,99 @@
+﻿{% extends 'index_layout.html' %}
+
+{% block title %}{{ _(u'商品列表') }}{% end %}
+
+{% block js %}
+<script>
+    function remove(id) {
+         $.ajax({
+            url: "/my_address_delete/"+id.trim()+"/",
+            data:{ data: "" },
+            type:'delete',
+            datatype:'json',
+            success: function(arg){
+                coll_back_data = $.parseJSON(arg)
+                if ((coll_back_data['code']) == 1){
+                    location.reload()
+                }else{
+                    layer.msg('删除失败！', {icon: 5});
+                }
+        }});
+    }
+    
+    function add_address() {
+        layer.open({
+            title:"{{ _(u'添加收货地址') }}",
+          type: 2,
+          area: ['500px', '450px'],
+          fixed: false, //不固定
+          maxmin: true,
+          content: '/address_page'
+        });
+    }
+    
+</script>
+{% end %}
+
+{% block content %}
+  <section class="sub-header shop-detail-1">
+    <img class="rellax bg-overlay" src="{{ static_url('picture/014.jpg') }}" alt="">
+    <div class="overlay-call-to-action"></div>
+    <h3 class="heading-style-3" style="font-size: 24px;">{{ _(u'我喜欢的商品') }}</h3>
+  </section>
+  <section class="boxed-sm">
+    <div class="container">
+      <div class="woocommerce">
+          <br><br>
+          <button onclick="add_address()" type="button" class="btn btn-primary btn-sm">{{ _(u'添加收货地址') }}</button>
+          <br><br>
+        <form class="woocommerce-cart-form">
+          <table class="woocommerce-cart-table">
+            <thead>
+              <tr>
+                <th class="product-thumbnail">{{ _(u'省份') }}</th>
+                <th class="product-name">{{ _(u'城市') }}</th>
+                <th class="product-price">{{ _(u'邮编') }}</th>
+                <th class="product-status">{{ _(u'电话') }}</th>
+                <th class="product-add-to-cart">{{ _(u'固定电话') }}</th>
+                <th class="product-remove">{{ _(u'联系人') }}</th>
+                <th class="product-remove">{{ _(u'详细地址') }}</th>
+                <th class="product-remove"></th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for address in my_address %}
+              <tr>
+                <td class="product-thumbnail">
+                 {{ address.UserProvince }}
+                </td>
+                <td class="product-name" data-title="Product">
+                 {{ address.UserCity }}
+                </td>
+                <td class="product-price" data-title="Weight">
+                 {{ address.UserZipCode }}
+                </td>
+                <td class="product-stock-status" data-title="Stock Status">
+                 {{ address.UserTelphone }}
+                </td>
+                <td class="product-add-to-cart">
+                 {{ address.UserMobile }}
+                </td>
+                  <td class="product-add-to-cart">
+                  {{ address.ConsigneeName }}
+                </td>
+                  <td class="product-add-to-cart">
+                  {{ address.DetaileAddress }}
+                </td>
+                <td class="product-remove text-right">
+                  <span class="remove" style="cursor: pointer" onclick="remove(' {{ address.DeliveryAddressID }}')" aria-label="Remove this item">x</span>
+                </td>
+              </tr>
+            {% end %}
+            </tbody>
+          </table>
+        </form>
+          <br><br><br><br>
+      </div>
+    </div>
+  </section>
+{% end %}
