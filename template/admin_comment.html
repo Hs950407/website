@@ -1,0 +1,241 @@
+{% extends 'admin_layout.html' %}
+{% block title %}商量类型列表{% end %}
+
+{% block js %}
+<script>
+    function get_user_info(id) {
+        $.ajax({
+            url: "/admin/user/select/"+id+"/",
+            data:"",
+            type:'get',
+            async:false,
+            datatype:'json',
+            success: function(arg){
+                coll_back_data = $.parseJSON(arg)
+                console.log(coll_back_data.data)
+                id = coll_back_data.data.UserID
+                name= coll_back_data.data.UserName
+                sex= coll_back_data.data.UserSex
+                age= coll_back_data.data.UserAge
+                email= coll_back_data.data.UserEmail
+                vip= coll_back_data.data.UserVip
+                point= coll_back_data.data.UserPoint
+        }});
+
+       layer.open({
+          type: 1
+          ,title: '用户信息'
+          ,area: ['390px', '230px']
+          ,shade: 0
+          ,offset: [$(window).height()/4.5, $(window).width()/2.5]
+          ,maxmin: true
+          ,content:
+              '<br><ul>\n' +
+          '  <li>ID : '+ id +'</li>\n' +　
+          '  <li>名称 : '+ name +'</li>\n' +
+          '  <li>性别 : '+ sex +'</li>\n' +
+          '  <li>年龄 : '+ age +'</li>\n' +
+          '  <li>邮箱 : '+ email +'</li>\n' +
+          '  <li>VIP等级 : '+ vip +'</li>\n' +
+          '  <li>积分 :  '+ point +'</li>\n' +
+          '</ul>'
+          ,yes: function(){
+            $(that).click();
+          }
+          ,zIndex: layer.zIndex
+          ,success: function(layero){
+            layer.setTop(layero);
+          }
+        });
+    }
+
+    function get_comment_info(id) {
+        $.ajax({
+            url: "/admin/comment/select/"+id+"/",
+            data:"",
+            type:'get',
+            async:false,
+            datatype:'json',
+            success: function(arg){
+                coll_back_data = $.parseJSON(arg)
+                console.log(coll_back_data.data)
+                if (coll_back_data.data.Status){
+                     $('#Status').val('1')
+                }else{
+                    $('#Status').val('0')
+                }
+                $('#CommentID').val(coll_back_data.data.CommentID)
+        }});
+    }
+    
+    function save_comment() {
+        var CommentID = $('#CommentID').val()
+        var Status = $('#Status').val()
+        json_data={}
+        json_data.Status = Status
+
+        $.ajax({
+        url: "/admin/comment/update/"+CommentID+"/",
+        data:{ data: JSON.stringify(json_data) },
+        type:'patch',
+        datatype:'json',
+        success: function(arg){
+            coll_back_data = $.parseJSON(arg)
+            if ((coll_back_data['code']) == 1){
+                layer.confirm('更新成功', {
+                  btn: ['确定'] //按钮
+                }, function(){
+                 location.reload()
+                });
+                //layer.msg('更新成功！', {icon: 1});
+
+            }else{
+                layer.msg('更新失败！', {icon: 5});
+            }
+    }});
+    }
+
+    function delete_comment(id) {
+          layer.confirm('您确认删除ID为'+id+'的评论吗？', {
+          btn: ['确认','取消'] //按钮
+        }, function(){
+          $.ajax({
+            url: "/admin/comment/delete/"+id+"/",
+            data:{ data: "" },
+            type:'delete',
+            datatype:'json',
+            success: function(arg){
+                coll_back_data = $.parseJSON(arg)
+                if ((coll_back_data['code']) == 1){
+                    location.reload()
+                }else{
+                    layer.msg('删除失败！', {icon: 5});
+                }
+        }});
+        });
+    }
+</script>
+{% end %}
+
+{% block bread_crumbs %}
+<ul class="breadcrumb">
+	<li>
+		<i class="ace-icon fa fa-home home-icon"></i>
+		<a href="javascript:void(0);">首页</a>
+	</li>
+
+	<li>
+		<a href="javascript:void(0);">评论表</a>
+	</li>
+	<li class="active"> &amp; Product Type</li>
+</ul>
+{% end %}
+
+<!-- 面包屑下的表的名称 -->
+{% block bread_crumbs_table_name %}
+<div class="page-header">
+	<h1>
+		评论表&nbsp;&nbsp;<span style="font-size: 14px;color: red;">&amp;查看</span>
+	</h1>
+</div>
+{% end %}
+
+<!-- 表的内容 -->
+{% block table_content %}
+<div class="row">
+	<div class="col-xs-12">
+		<!-- PAGE CONTENT BEGINS -->
+		<div class="row">
+			<div class="col-xs-12">
+				<table id="simple-table" class="table  table-bordered table-hover">
+					<thead>
+						<tr>
+							<th class="center col-md-1">评论ID</th>
+							<th class="center col-md-1">用户ID</th>
+							<th class="center col-md-1">商品ID</th>
+							<th class="center col-md-1">审核状态</th>
+							<th class="center col-md-2">评论时间</th>
+							<th class="center col-md-5">评论内容</th>
+                            <th class="center">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+                        {% for comment in comment_list %}
+						<tr>
+                            <td class="center">{{ comment.CommentID }}</td>
+                            <td style="cursor: pointer;color: red" onclick="get_user_info('{{ comment.UserID }}')" class="center">{{ comment.UserID }}</td>
+                            <td class="center">{{ comment.ProductID }}</td>
+                            {% if comment.Status == False %}
+                                <td class="center">未通过</td>
+                            {% else %}
+                                <td class="center">通过</td>
+                            {% end %}
+                            <td class="center">{{ comment.CerateTime }}</td>
+                            <td  class="center">{{ comment.Content }}</td>
+							<td class="center">
+								<div class="hidden-sm hidden-xs">
+									<button onclick="get_comment_info('{{ comment.CommentID }}')" class="btn btn-xs btn-info" data-toggle="modal" data-target="#modal-table">
+										<i class="ace-icon fa fa-pencil bigger-120"></i>
+									</button>
+									<button onclick="delete_comment('{{ comment.CommentID }}')" class="btn btn-xs btn-danger">
+										<i class="ace-icon fa fa-trash-o bigger-120"></i>
+									</button>
+								</div>
+							</td>
+						</tr>
+
+                     {% end %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+{% end %}
+
+
+{% block modify_alert %}
+<!-- 修改弹窗块 -->
+<div id="modal-table" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header no-padding">
+                <div class="table-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="white">&times;</span>
+                    </button>
+                    评论审核
+                </div>
+            </div>
+
+            <div class="modal-body no-padding">
+                <form action="" class="form-horizontal">
+                    <div class="form-group">
+                            <label class="col-sm-3 control-label no-padding-right">评论编号</label>
+
+                            <div class="col-sm-9">
+                                <input type="text" id="CommentID" value="" class="col-xs-10 col-sm-5" readonly/>
+                            </div>
+                        </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label no-padding-right">评论状态</label>
+
+                       <div class="col-sm-9">
+                            <select id="Status" class="form-control" style="max-width: 200px;">
+                                <option value="1">通过</option>
+                                <option value="0">未通过</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer no-margin-top">
+                <button onclick="save_comment()" class="btn btn-sm btn-success pull-right" >
+                    提交
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% end %}
